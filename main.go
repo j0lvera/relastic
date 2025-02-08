@@ -81,16 +81,30 @@ func (g *GenCmd) Run() error {
 		return fmt.Errorf("failed to generate file: %v", err)
 	}
 
-	// Add after your constants file generation
+	// Api functions and react-query hooks
 	tmplPath = "templates/api.ts.tmpl"
 	outFile = filepath.Join(outDir, entity.Name+".api.ts")
 	if err := generateFile(entity, tmplPath, outFile); err != nil {
 		return fmt.Errorf("failed to generate file: %v", err)
 	}
 
-	// Add after your api file generation
+	// Form component
 	tmplPath = "templates/form.tsx.tmpl"
 	outFile = filepath.Join(outDir, entity.Name+".form.tsx")
+	if err := generateFile(entity, tmplPath, outFile); err != nil {
+		return fmt.Errorf("failed to generate file: %v", err)
+	}
+
+	// Table component
+	tmplPath = "templates/table.tsx.tmpl"
+	outFile = filepath.Join(outDir, entity.Name+".table.tsx")
+	if err := generateFile(entity, tmplPath, outFile); err != nil {
+		return fmt.Errorf("failed to generate file: %v", err)
+	}
+
+	// List component
+	tmplPath = "templates/list.tsx.tmpl"
+	outFile = filepath.Join(outDir, entity.Name+".list.tsx")
 	if err := generateFile(entity, tmplPath, outFile); err != nil {
 		return fmt.Errorf("failed to generate file: %v", err)
 	}

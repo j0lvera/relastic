@@ -1,0 +1,158 @@
+import {
+  Criteria,
+  EuiTableFieldDataColumnType,
+  EuiBasicTable,
+  EuiBasicTableColumn,
+  DefaultItemAction,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiText,
+  EuiSpacer,
+  EuiHorizontalRule,
+} from "@elastic/eui";
+import { useNavigate } from "@tanstack/react-router";
+import type { {{.Name}}, {{.Name}}TableComponent } from "./{{.Name}}.types";
+import { useSelection } from "../Common/Table";
+
+const {{.Name}}Table: {{.Name}}TableComponent = ({
+  data,
+  pagination,
+  sorting,
+  onEdit,
+  onDelete,
+}) => {
+  const navigate = useNavigate({ from: "/{{.Name | lower}}" });
+
+  const selectable = () => true;
+  const { selection, selectedItems } = useSelection<{{.Name}}>(selectable);
+
+  const actions: DefaultItemAction<{{.Name}}>[] = [
+    {
+      name: "Edit",
+      type: "icon",
+      description: "Edit {{.Name | lower}}",
+      icon: "pencil",
+      color: "text",
+      onClick: (item: {{.Name}}) => {
+        onEdit?.(item);
+      },
+    },
+    {
+      name: "Delete",
+      type: "icon",
+      description: "Delete {{.Name | lower}}",
+      icon: "trash",
+      color: "danger",
+      onClick: (item: {{.Name}}) => {
+        onDelete?.(item);
+      },
+    },
+  ];
+
+  const columns: EuiBasicTableColumn<{{.Name}}>[] = [
+    {{- range .Fields}}
+    {
+      field: "{{.Name}}",
+      name: "{{.Name | title}}",
+      sortable: true,
+      {{- if eq .Type "string"}}
+      truncateText: true,
+      {{- end}}
+    },
+    {{- end}}
+    {
+      name: "Actions",
+      actions,
+    },
+  ];
+
+  const getRowProps = (item: {{.Name}}) => ({
+    "data-test-subj": `row-${item.uuid}`,
+    className: "customRowClass",
+    onClick: () => console.info("clicked", item),
+  });
+
+  const getCellProps = (
+    item: {{.Name}},
+    column: EuiTableFieldDataColumnType<{{.Name}}>,
+  ) => ({
+    className: "customCellClass",
+    "data-test-subj": `cell-${item.uuid}-${column.field}`,
+    textOnly: true,
+  });
+
+  const onTableChange = ({ page, sort }: Criteria<{{.Name}}>) => {
+    if (sort) {
+      const { field, direction } = sort;
+      (async () => {
+        await navigate({
+          search: (prev) => ({
+            ...prev,
+            sort: field,
+            direction,
+          }),
+        });
+      })();
+    }
+
+    if (page) {
+      const { index, size } = page;
+      (async () => {
+        await navigate({
+          search: (prev) => ({
+            ...prev,
+            page: index,
+            limit: size,
+          }),
+        });
+      })();
+    }
+  };
+
+  const resultsCount =
+    pagination.totalItemCount === 0 ? (
+      <strong>0</strong>
+    ) : (
+      <>
+        <strong>
+          {pagination.pageSize * pagination.pageIndex + 1}-
+          {pagination.pageSize * pagination.pageIndex + pagination.pageSize}
+        </strong>{" "}
+        of {pagination?.totalItemCount}
+      </>
+    );
+
+  return (
+    <>
+      <EuiFlexGroup justifyContent="spaceAround">
+        <EuiFlexItem>
+          <EuiText size="xs">
+            Showing {resultsCount} <strong>{{.Name}}s</strong>
+          </EuiText>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <EuiText size="xs">
+            Selected <strong>{selectedItems?.length}</strong>
+          </EuiText>
+        </EuiFlexItem>
+      </EuiFlexGroup>
+      <EuiSpacer size="s" />
+      <EuiHorizontalRule />
+      <EuiBasicTable
+        tableCaption="{{.Name}}s table"
+        items={data}
+        itemId="uuid"
+        rowHeader="name"
+        rowProps={getRowProps}
+        cellProps={getCellProps}
+        columns={columns}
+        onChange={onTableChange}
+        sorting={sorting}
+        pagination={pagination}
+        selection={selection}
+      />
+    </>
+  );
+};
+
+export { {{.Name}}Table };
