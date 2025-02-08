@@ -1,0 +1,71 @@
+import { queryOptions, useMutation } from "@tanstack/react-query";
+import { api } from "../../api";
+import { {{.Name}}, {{.Name}}Create, {{.Name}}Update, {{.Name}}Delete } from "./{{.Name}}.types";
+import { {{.Name | upper}}_API_URL, {{.Name | upper}}_QUERY_KEY } from "./{{.Name}}.constants";
+import { Paginated } from "../../types";
+import { AxiosResponse } from "axios";
+
+// GET /{{.Name | lower}}s
+const fetch{{.Name}}s = async () => {
+  const res: AxiosResponse<Paginated<{{.Name}}>> = await api.get({{.Name | upper}}_API_URL);
+  return res.data;
+};
+
+const {{.Name | lower}}sQueryOptions = () =>
+  queryOptions({
+    queryKey: [{{.Name | upper}}_QUERY_KEY],
+    queryFn: () => fetch{{.Name}}s(),
+  });
+
+// POST /{{.Name | lower}}s
+const create{{.Name}} = async (data: {{.Name}}Create) => {
+  const res: AxiosResponse<{{.Name}}> = await api.post({{.Name | upper}}_API_URL, data);
+  return res.data;
+};
+
+const useCreate{{.Name}} = () => {
+  return useMutation({
+    mutationFn: create{{.Name}},
+  });
+};
+
+// PUT /{{.Name | lower}}s/:uuid
+const update{{.Name}} = async (data: {{.Name}}Update) => {
+  const { uuid, ...rest } = data;
+  const res: AxiosResponse<{{.Name}}> = await api.put(
+    {{.Name | upper}}_API_URL + "/" + uuid,
+    rest
+  );
+  return res.data;
+};
+
+const useUpdate{{.Name}} = () => {
+  return useMutation({
+    mutationFn: update{{.Name}},
+  });
+};
+
+// DELETE /{{.Name | lower}}s/:uuid
+const delete{{.Name}} = async (data: {{.Name}}Delete) => {
+  const res: AxiosResponse<{{.Name}}> = await api.delete(
+    {{.Name | upper}}_API_URL + "/" + data.uuid
+  );
+  return res.data;
+};
+
+const useDelete{{.Name}} = () => {
+  return useMutation({
+    mutationFn: delete{{.Name}},
+  });
+};
+
+export {
+  fetch{{.Name}}s,
+  {{.Name | lower}}sQueryOptions,
+  create{{.Name}},
+  useCreate{{.Name}},
+  update{{.Name}},
+  useUpdate{{.Name}},
+  delete{{.Name}},
+  useDelete{{.Name}},
+};

@@ -1,0 +1,64 @@
+import { EuiFieldText, EuiFieldNumber, EuiSelect } from "@elastic/eui";
+import { {{.Name}}Create, {{.Name}}Update, {{.Name}}FormProps } from "./{{.Name}}.types";
+import { Form, FormField } from "../Common/Form";
+
+const {{.Name}}Form = <T extends {{.Name}}Create | {{.Name}}Update>({
+  formId,
+  defaultValues,
+  onSubmit,
+  isLoading,
+}: {{.Name}}FormProps<T>) => {
+  const handleSubmit = (data: T) => {
+    onSubmit?.(data);
+  };
+
+  return (
+    <Form<T>
+      formId={formId}
+      defaultValues={defaultValues}
+      onSubmit={handleSubmit}
+      isLoading={isLoading}
+    >
+      {({ control }) => (
+        <>
+        {{range .Fields}}
+          <FormField
+            label="{{.Name | title}}"
+            control={control}
+            rules={{"{{"}}
+              required: {{.Required}},
+              {{if eq .Type "number"}}
+              min: { value: 0, message: 'Must be greater than 0' },
+              {{end}}
+              validate: (value) => value !== undefined || 'Please enter {{.Name | title}}'
+            {{"}}"}}
+            placeholder="{{if eq .Type "number"}}0{{else if eq .Type "boolean"}}Select {{.Name}}{{else}}Enter {{.Name | title}}{{end}}"
+          >
+            {{if eq .Type "number"}}
+            <EuiFieldNumber
+              min={0}
+              compressed
+            />
+            {{else if eq .Type "boolean"}}
+            <EuiSelect
+              options={[
+                { value: "", text: "Select..." },
+                { value: "true", text: "Yes" },
+                { value: "false", text: "No" }
+              ]}
+              compressed
+            />
+            {{else}}
+            <EuiFieldText
+              compressed
+            />
+            {{end}}
+          </FormField>
+        {{end}}
+        </>
+      )}
+    </Form>
+  );
+};
+
+export { {{.Name}}Form };

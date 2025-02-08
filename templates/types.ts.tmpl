@@ -1,0 +1,70 @@
+// templates/types.ts.tmpl
+
+import { ReactElement } from "react";
+import { EuiTableSortingType } from "@elastic/eui";
+import { DefaultValues } from "react-hook-form";
+{{$name := .Name}}
+interface {{.Name}} {
+  uuid: string;
+{{- range .Fields}}
+  {{.Name}}{{if not .Required}}?{{end}}: {{.Type}};
+{{- end}}
+}
+
+// POST /{{.Name | lower}}
+type {{.Name}}Create = Omit<{{.Name}}, "uuid">;
+
+// PUT /{{.Name | lower}}/:uuid
+type {{.Name}}Update = Partial<{{.Name}}Create> & Pick<{{.Name}}, "uuid">;
+
+// DELETE /{{.Name | lower}}/:uuid
+type {{.Name}}Delete = Pick<{{.Name}}, "uuid">;
+
+// Table types
+interface {{.Name}}TableProps {
+  data: {{.Name}}[];
+  pagination: {{.Name}}Pagination;
+  sorting: EuiTableSortingType<{{.Name}}>;
+  onEdit?: ({{.Name | lower}}: {{.Name}}) => void;
+  onDelete?: ({{.Name | lower}}: {{.Name}}) => void;
+}
+
+type {{.Name}}TableComponent = (props: {{.Name}}TableProps) => ReactElement | null;
+
+// Form types
+interface {{.Name}}FormProps<T extends {{.Name}}Create | {{.Name}}Update> {
+  formId?: string;
+  onSubmit?: (data: T) => void;
+  defaultValues?: DefaultValues<T>;
+  isLoading?: boolean;
+}
+
+type {{.Name}}FormComponent = <T extends {{.Name}}Create | {{.Name}}Update>(
+  props: {{.Name}}FormProps<T>
+) => ReactElement | null;
+
+// Misc
+interface {{.Name}}Pagination {
+  pageIndex: number;
+  pageSize: number;
+  totalItemCount: number;
+  pageSizeOptions: number[];
+}
+
+interface {{.Name}}Sorting {
+  field: keyof {{.Name}};
+  direction: "asc" | "desc";
+}
+
+export type {
+  {{.Name}},
+  {{.Name}}Create,
+  {{.Name}}Update,
+  {{.Name}}Delete,
+  {{.Name}}TableComponent,
+  {{.Name}}TableProps,
+  {{.Name}}FormComponent,
+  {{.Name}}FormProps,
+  {{.Name}}Pagination,
+  {{.Name}}Sorting,
+};
