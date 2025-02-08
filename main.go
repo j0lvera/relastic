@@ -16,10 +16,24 @@ var CLI struct {
 	Gen GenCmd `cmd:"" help:"Generate a new React CRUD entity"`
 }
 
+type ComponentType string
+
+const (
+	TypesComponent     ComponentType = "types"
+	ConstantsComponent ComponentType = "constants"
+	ApiComponent       ComponentType = "api"
+	FormComponent      ComponentType = "form"
+	TableComponent     ComponentType = "table"
+	ListComponent      ComponentType = "list"
+	DetailComponent    ComponentType = "detail"
+	AllComponents      ComponentType = "all"
+)
+
 type GenCmd struct {
-	Name   string `help:"Name of the entity" required:""`
-	Fields string `help:"Fields in format name:type:required,... (e.g., name:string:true,age:number:false)" required:""`
-	Out    string `help:"Output directory" default:"."`
+	Name      string        `help:"Name of the entity" required:""`
+	Fields    string        `help:"Fields in format name:type:required,... (e.g., name:string:true,age:number:false)" required:""`
+	Component ComponentType `help:"Component type to generate" enum:"types,constants,api,form,table,list,detail,all" default:"all"`
+	Out       bool          `help:"Create components in a subdirectory named after the entity" default:"false"`
 }
 
 type Field struct {
@@ -53,8 +67,14 @@ func (g *GenCmd) Run() error {
 		Fields: fields,
 	}
 
-	// create output directory
-	outDir := filepath.Join(g.Out, strings.ToLower(entity.Name))
+	// Determine output directory
+	var outDir string
+	if g.Out {
+		outDir = strings.ToLower(entity.Name)
+	} else {
+		outDir = "."
+	}
+
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
@@ -63,57 +83,40 @@ func (g *GenCmd) Run() error {
 		Str("entity", entity.Name).
 		Int("fields", len(entity.Fields)).
 		Str("dir", outDir).
+		Str("component", string(g.Component)).
+		Bool("subfolder", g.Out).
 		Msg("generating entity")
 
-	// TODO: add template generation logic here
-	// generate types file
-	tmplPath := "templates/types.ts.tmpl"
-	outFile := filepath.Join(outDir, entity.Name+".types.ts")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
+	components := map[ComponentType]struct {
+		template string
+		output   string
+	}{
+		TypesComponent:     {"templates/types.ts.tmpl", entity.Name + ".types.ts"},
+		ConstantsComponent: {"templates/constants.ts.tmpl", entity.Name + ".constants.ts"},
+		ApiComponent:       {"templates/api.ts.tmpl", entity.Name + ".api.ts"},
+		FormComponent:      {"templates/form.tsx.tmpl", entity.Name + ".form.tsx"},
+		TableComponent:     {"templates/table.tsx.tmpl", entity.Name + ".table.tsx"},
+		ListComponent:      {"templates/list.tsx.tmpl", entity.Name + ".list.tsx"},
+		DetailComponent:    {"templates/detail.tsx.tmpl", entity.Name + ".detail.tsx"},
 	}
 
-	// generate constants file
-	// Add after your types file generation
-	tmplPath = "templates/constants.ts.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".constants.ts")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
-	}
-
-	// Api functions and react-query hooks
-	tmplPath = "templates/api.ts.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".api.ts")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
-	}
-
-	// Form component
-	tmplPath = "templates/form.tsx.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".form.tsx")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
-	}
-
-	// Table component
-	tmplPath = "templates/table.tsx.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".table.tsx")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
-	}
-
-	// List component
-	tmplPath = "templates/list.tsx.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".list.tsx")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
-	}
-
-	// Detail component
-	tmplPath = "templates/detail.tsx.tmpl"
-	outFile = filepath.Join(outDir, entity.Name+".detail.tsx")
-	if err := generateFile(entity, tmplPath, outFile); err != nil {
-		return fmt.Errorf("failed to generate file: %v", err)
+	// Generate specified component or all components
+	if g.Component == AllComponents {
+		// Generate all components
+		for _, comp := range components {
+			if err := generateFile(entity, comp.template, filepath.Join(outDir, comp.output)); err != nil {
+				return fmt.Errorf("failed to generate file: %v", err)
+			}
+		}
+	} else {
+		// Generate specific component
+		if comp, ok := components[g.Component]; ok {
+			if err := generateFile(entity, comp.template, filepath.Join(outDir, comp.output)); err != nil {
+				return fmt.Errorf("failed to generate file: %v", err)
+			}
+		} else {
+			return fmt.Errorf("invalid component type: %s", g.Component)
+		}
 	}
 
 	return nil
