@@ -109,6 +109,13 @@ func (g *GenCmd) Run() error {
 		return fmt.Errorf("failed to generate file: %v", err)
 	}
 
+	// Detail component
+	tmplPath = "templates/detail.tsx.tmpl"
+	outFile = filepath.Join(outDir, entity.Name+".detail.tsx")
+	if err := generateFile(entity, tmplPath, outFile); err != nil {
+		return fmt.Errorf("failed to generate file: %v", err)
+	}
+
 	return nil
 }
 
@@ -179,5 +186,4 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to run command")
 	}
-
 }

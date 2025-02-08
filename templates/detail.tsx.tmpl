@@ -1,0 +1,234 @@
+import { useState } from "react";
+import {
+  EuiButton,
+  EuiConfirmModal,
+  EuiPageTemplate,
+  EuiSpacer,
+  EuiText,
+} from "@elastic/eui";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { EuiBreadcrumb } from "@elastic/eui/src/components/breadcrumbs";
+
+import { {{.Name | lower}}QueryOptions } from "./{{.Name}}.api";
+import {
+  useCreate{{.Name}},
+  useUpdate{{.Name}},
+  useDelete{{.Name}},
+} from "./{{.Name}}.api";
+import { Modal, useModalUtils } from "../Common/Modal";
+import { {{.Name}}Form } from "./{{.Name}}.form";
+import type { {{.Name}}, {{.Name}}Create } from "./{{.Name}}.types";
+import { {{.Name | upper}}_QUERY_KEY } from "./{{.Name}}.constants";
+
+const {{.Name}}Detail = () => {
+  // Dependencies
+  const queryClient = useQueryClient();
+  const navigate = useNavigate({ from: "/{{.Name | lower}}s" });
+  const params = getRouteApi("/_layout/{{.Name | lower}}s/${{.Name | lower}}Id").useParams();
+
+  // Local state
+  const [selected{{.Name}}, setSelected{{.Name}}] = useState<{{.Name}} | null>(null);
+
+  // Query data
+  const {{.Name | lower}}Detail = useSuspenseQuery({{.Name | lower}}QueryOptions(params.{{.Name | lower}}Id));
+
+  // CREATE functionality
+  const create{{.Name}} = useCreate{{.Name}}();
+  const {
+    isOpen: isCreate{{.Name}}ModalOpen,
+    openModal: openCreate{{.Name}}Modal,
+    closeModal: closeCreate{{.Name}}Modal,
+    modalFormId: create{{.Name}}ModalFormId,
+  } = useModalUtils("create-{{.Name | lower}}");
+
+  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}Create) => {
+    const new{{.Name}} = {
+      ...{{.Name | lower}},
+      parentId: params.{{.Name | lower}}Id,
+    };
+
+    create{{.Name}}.mutate(new{{.Name}}, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [{{.Name | upper}}_QUERY_KEY],
+        });
+        closeCreate{{.Name}}Modal();
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  // UPDATE functionality
+  const update{{.Name}} = useUpdate{{.Name}}();
+  const {
+    isOpen: isEdit{{.Name}}ModalOpen,
+    openModal: openEdit{{.Name}}Modal,
+    closeModal: closeEdit{{.Name}}Modal,
+    modalFormId: edit{{.Name}}ModalFormId,
+  } = useModalUtils("edit-{{.Name | lower}}");
+
+  const handleEdit{{.Name}} = ({{.Name | lower}}: {{.Name}}) => {
+    const {{.Name | lower}}ToUpdate = {
+      ...{{.Name | lower}},
+      parentId: params.{{.Name | lower}}Id,
+    };
+
+    update{{.Name}}.mutate({{.Name | lower}}ToUpdate, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [{{.Name | upper}}_QUERY_KEY],
+        });
+        closeEdit{{.Name}}Modal();
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  const handleTableEditAction = ({{.Name | lower}}: {{.Name}}) => {
+    setSelected{{.Name}}({{.Name | lower}});
+    openEdit{{.Name}}Modal();
+  };
+
+  // DELETE functionality
+  const delete{{.Name}} = useDelete{{.Name}}();
+  const {
+    isOpen: isDelete{{.Name}}ModalOpen,
+    openModal: openDelete{{.Name}}Modal,
+    closeModal: closeDelete{{.Name}}Modal,
+  } = useModalUtils("delete-{{.Name | lower}}");
+
+  const handleDelete{{.Name}} = () => {
+    const {{.Name | lower}} = selected{{.Name}};
+    if (!{{.Name | lower}}) return;
+
+    const {{.Name | lower}}ToDelete = {
+      uuid: {{.Name | lower}}.uuid,
+      parentId: params.{{.Name | lower}}Id,
+    };
+
+    delete{{.Name}}.mutate({{.Name | lower}}ToDelete, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [{{.Name | upper}}_QUERY_KEY],
+        });
+        closeDelete{{.Name}}Modal();
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  const handleTableDeleteAction = ({{.Name | lower}}: {{.Name}}) => {
+    setSelected{{.Name}}({{.Name | lower}});
+    openDelete{{.Name}}Modal();
+  };
+
+  const breadcrumbs: EuiBreadcrumb[] = [
+    {
+      text: "{{.Name}}s",
+      href: "/{{.Name | lower}}s",
+      onClick: async (e) => {
+        e.preventDefault();
+        await navigate({
+          to: "/{{.Name | lower}}s",
+          search: {},
+        });
+      },
+    },
+    {
+      text: {{.Name | lower}}Detail.data.name,
+    },
+  ];
+
+  return (
+    <>
+      {isDelete{{.Name}}ModalOpen && selected{{.Name}} && (
+        <EuiConfirmModal
+          title="Delete {{.Name}}"
+          onCancel={closeDelete{{.Name}}Modal}
+          onConfirm={handleDelete{{.Name}}}
+          cancelButtonText="Cancel"
+          confirmButtonText="Delete"
+          buttonColor="danger"
+          defaultFocusedButton="confirm"
+          isLoading={delete{{.Name}}.isPending}
+        >
+          <p>
+            Are you sure you want to delete this {{.Name | lower}}? This action cannot be
+            undone.
+          </p>
+        </EuiConfirmModal>
+      )}
+
+      {isEdit{{.Name}}ModalOpen && selected{{.Name}} && (
+        <Modal
+          title="Edit {{.Name}}"
+          formId={edit{{.Name}}ModalFormId}
+          onClose={closeEdit{{.Name}}Modal}
+          isLoading={update{{.Name}}.isPending}
+        >
+          <{{.Name}}Form
+            formId={edit{{.Name}}ModalFormId}
+            onSubmit={handleEdit{{.Name}}}
+            isLoading={update{{.Name}}.isPending}
+            defaultValues={selected{{.Name}}}
+          />
+        </Modal>
+      )}
+
+      {isCreate{{.Name}}ModalOpen && (
+        <Modal
+          title="Create {{.Name}}"
+          formId={create{{.Name}}ModalFormId}
+          onClose={closeCreate{{.Name}}Modal}
+          isLoading={create{{.Name}}.isPending}
+        >
+          <{{.Name}}Form
+            formId={create{{.Name}}ModalFormId}
+            onSubmit={handleCreate{{.Name}}}
+            isLoading={create{{.Name}}.isPending}
+          />
+        </Modal>
+      )}
+
+      <EuiPageTemplate.Header
+        pageTitle="{{.Name}} Details"
+        breadcrumbs={breadcrumbs}
+        rightSideItems={[
+          <EuiButton
+            color="primary"
+            fill
+            size="s"
+            onClick={openCreate{{.Name}}Modal}
+          >
+            Add {{.Name}}
+          </EuiButton>,
+        ]}
+      />
+
+      <EuiPageTemplate.Section>
+        <EuiText>
+          <h3>{{.Name}} Information</h3>
+        </EuiText>
+        <EuiSpacer size="m" />
+
+        {/* Detail fields display */}
+        {{- range .Fields}}
+        <EuiText size="s">
+          <p>
+            <strong>{{.Name | title}}:</strong> {`${ {{$.Name | lower}}Detail.data.{{.Name}} }`}
+          </p>
+        </EuiText>
+        {{- end}}
+      </EuiPageTemplate.Section>
+    </>
+  );
+};
+
+export { {{.Name}}Detail };
