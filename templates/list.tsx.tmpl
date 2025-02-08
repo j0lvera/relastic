@@ -1,0 +1,221 @@
+import { useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
+import {
+  EuiFieldSearch,
+  EuiButton,
+  EuiConfirmModal,
+  EuiPageTemplate,
+  EuiText,
+  EuiSpacer,
+  EuiTableSortingType,
+} from "@elastic/eui";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { {{.Name}}Table } from "./{{.Name}}.table";
+import { {{.Name}}Form } from "./{{.Name}}.form";
+import type { {{.Name}}, {{.Name}}Create, {{.Name}}Update } from "./{{.Name}}.types";
+import { Modal, useModalUtils } from "../Common/Modal";
+import {
+  {{.Name | lower}}sQueryOptions,
+  useCreate{{.Name}},
+  useUpdate{{.Name}},
+  useDelete{{.Name}},
+} from "./{{.Name}}.api";
+import { {{.Name | upper}}_QUERY_KEY } from "./{{.Name}}.constants";
+
+const {{.Name}}List = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+
+  const { page, limit, filter, sort, direction } = useSearch();
+  const navigate = useNavigate({ from: "/{{.Name | lower}}" });
+  const queryClient = useQueryClient();
+
+  const [selected{{.Name}}, setSelected{{.Name}}] = useState<{{.Name}} | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      await navigate({
+        search: (prev) => ({
+          ...prev,
+          search: debouncedSearchQuery,
+        }),
+      });
+    })();
+  }, [debouncedSearchQuery, navigate]);
+
+  // Query data
+  const {{.Name | lower}}sQuery = useSuspenseQuery(
+    {{.Name | lower}}sQueryOptions(page, limit, filter, sort, direction)
+  );
+  const {{.Name | lower}}s = {{.Name | lower}}sQuery.data;
+
+  // CREATE functionality
+  const create{{.Name}} = useCreate{{.Name}}();
+  const {
+    isOpen: isAddModalOpen,
+    openModal: openAddModal,
+    closeModal: closeAddModal,
+    modalFormId: addModalFormId,
+  } = useModalUtils("add-{{.Name | lower}}");
+
+  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}Create) => {
+    create{{.Name}}.mutate({{.Name | lower}}, {
+      onSuccess: async () => {
+        closeAddModal();
+        await queryClient.invalidateQueries({ queryKey: [{{.Name | upper}}_QUERY_KEY] });
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  // UPDATE functionality
+  const update{{.Name}} = useUpdate{{.Name}}();
+  const {
+    isOpen: isUpdateModalOpen,
+    openModal: openUpdateModal,
+    closeModal: closeUpdateModal,
+    modalFormId: updateModalFormId,
+  } = useModalUtils("update-{{.Name | lower}}");
+
+  const handleUpdate{{.Name}} = ({{.Name | lower}}: {{.Name}}Update) => {
+    update{{.Name}}.mutate({{.Name | lower}}, {
+      onSuccess: async () => {
+        closeUpdateModal();
+        await queryClient.invalidateQueries({ queryKey: [{{.Name | upper}}_QUERY_KEY] });
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  const handleTableEditAction = ({{.Name | lower}}: {{.Name}}) => {
+    setSelected{{.Name}}({{.Name | lower}});
+    openUpdateModal();
+  };
+
+  // DELETE functionality
+  const delete{{.Name}} = useDelete{{.Name}}();
+  const {
+    isOpen: isDeleteModalOpen,
+    openModal: openDeleteModal,
+    closeModal: closeDeleteModal,
+    modalTitleId: deleteModalTitleId,
+  } = useModalUtils("delete-{{.Name | lower}}");
+
+  const handleDelete{{.Name}} = () => {
+    const {{.Name | lower}} = selected{{.Name}};
+    if (!{{.Name | lower}}) return;
+
+    delete{{.Name}}.mutate({{.Name | lower}}, {
+      onSuccess: async () => {
+        closeDeleteModal();
+        await queryClient.invalidateQueries({ queryKey: [{{.Name | upper}}_QUERY_KEY] });
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  };
+
+  const handleTableDeleteAction = ({{.Name | lower}}: {{.Name}}) => {
+    setSelected{{.Name}}({{.Name | lower}});
+    openDeleteModal();
+  };
+
+  const pagination = {
+    pageIndex: page,
+    pageSize: limit,
+    totalItemCount: {{.Name | lower}}s.total_count,
+    pageSizeOptions: [10, 20, 50, 100],
+  };
+
+  const sorting: EuiTableSortingType<{{.Name}}> = {
+    sort: sort
+      ? {
+          field: sort,
+          direction: direction ?? "asc",
+        }
+      : undefined,
+  };
+
+  return (
+    <>
+      {isDeleteModalOpen && selected{{.Name}} && (
+        <EuiConfirmModal
+          title="Delete {{.Name}}"
+          onCancel={closeDeleteModal}
+          onConfirm={handleDelete{{.Name}}}
+          cancelButtonText="Cancel"
+          confirmButtonText="Delete"
+          buttonColor="danger"
+          defaultFocusedButton="confirm"
+          isLoading={delete{{.Name}}.isPending}
+        >
+          <p>
+            Are you sure you want to delete this {{.Name | lower}}? This action cannot be
+            undone.
+          </p>
+        </EuiConfirmModal>
+      )}
+
+      {isUpdateModalOpen && selected{{.Name}} && (
+        <Modal
+          title="Update {{.Name}}"
+          onClose={closeUpdateModal}
+          formId={updateModalFormId}
+        >
+          <{{.Name}}Form
+            formId={updateModalFormId}
+            onSubmit={handleUpdate{{.Name}}}
+            defaultValues={selected{{.Name}}}
+          />
+        </Modal>
+      )}
+
+      {isAddModalOpen && (
+        <Modal
+          title="Add {{.Name}}"
+          onClose={closeAddModal}
+          formId={addModalFormId}
+        >
+          <{{.Name}}Form
+            formId={addModalFormId}
+            onSubmit={handleCreate{{.Name}}}
+          />
+        </Modal>
+      )}
+
+      <EuiPageTemplate.Header
+        pageTitle="{{.Name}}s"
+        rightSideItems={[
+          <EuiButton onClick={openAddModal}>Add {{.Name}}</EuiButton>,
+        ]}
+      />
+
+      <EuiPageTemplate.Section>
+        <EuiFieldSearch
+          placeholder="Search {{.Name | lower}}s"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          isClearable
+          aria-label="Search {{.Name | lower}}s"
+          compressed
+        />
+        <EuiSpacer size="m" />
+        <{{.Name}}Table
+          data={ {{.Name | lower}}s.items}
+          pagination={pagination}
+          sorting={sorting}
+          onEdit={handleTableEditAction}
+          onDelete={handleTableDeleteAction}
+        />
+      </EuiPageTemplate.Section>
+    </>
+  );
+};
+
+export { {{.Name}}List };
