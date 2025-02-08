@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/alecthomas/kong"
 	"github.com/rs/zerolog"
@@ -11,6 +12,9 @@ import (
 	"strings"
 	"text/template"
 )
+
+//go:embed templates/*
+var templatesFS embed.FS
 
 var CLI struct {
 	Gen GenCmd `cmd:"" help:"Generate a new React CRUD entity"`
@@ -123,7 +127,7 @@ func (g *GenCmd) Run() error {
 }
 
 func generateFile(entity Entity, tmplPath string, outFile string) error {
-	// custom template functions
+	// Custom template functions
 	funcMap := template.FuncMap{
 		"lower": strings.ToLower,
 		"upper": strings.ToUpper,
@@ -135,19 +139,19 @@ func generateFile(entity Entity, tmplPath string, outFile string) error {
 		},
 	}
 
-	// Read template content
-	content, err := os.ReadFile(tmplPath)
+	// Read template content from embedded fs
+	content, err := templatesFS.ReadFile(tmplPath)
 	if err != nil {
 		return fmt.Errorf("failed to read template: %w", err)
 	}
 
-	// read and parse the template with custom functions
+	// Read and parse the template with custom functions
 	tmpl, err := template.New(filepath.Base(tmplPath)).Funcs(funcMap).Parse(string(content))
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %v", err)
 	}
 
-	// create output file
+	// Create output file
 	file, err := os.Create(outFile)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %v", err)

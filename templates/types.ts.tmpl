@@ -12,13 +12,13 @@ interface {{.Name}} {
 }
 
 // POST /{{.Name | lower}}
-type {{.Name}}Create = Omit<{{.Name}}, "uuid">;
+type {{.Name}}CreatePayload = Omit<{{.Name}}, "uuid">;
 
 // PUT /{{.Name | lower}}/:uuid
-type {{.Name}}Update = Partial<{{.Name}}Create> & Pick<{{.Name}}, "uuid">;
+type {{.Name}}UpdatePayload = Partial<{{.Name}}CreatePayload> & Pick<{{.Name}}, "uuid">;
 
 // DELETE /{{.Name | lower}}/:uuid
-type {{.Name}}Delete = Pick<{{.Name}}, "uuid">;
+type {{.Name}}DeletePayload = Pick<{{.Name}}, "uuid">;
 
 // Table types
 interface {{.Name}}TableProps {
@@ -32,14 +32,14 @@ interface {{.Name}}TableProps {
 type {{.Name}}TableComponent = (props: {{.Name}}TableProps) => ReactElement | null;
 
 // Form types
-interface {{.Name}}FormProps<T extends {{.Name}}Create | {{.Name}}Update> {
+interface {{.Name}}FormProps<T extends {{.Name}}CreatePayload | {{.Name}}UpdatePayload> {
   formId?: string;
   onSubmit?: (data: T) => void;
   defaultValues?: DefaultValues<T>;
   isLoading?: boolean;
 }
 
-type {{.Name}}FormComponent = <T extends {{.Name}}Create | {{.Name}}Update>(
+type {{.Name}}FormComponent = <T extends {{.Name}}CreatePayload | {{.Name}}UpdatePayload>(
   props: {{.Name}}FormProps<T>
 ) => ReactElement | null;
 
@@ -58,9 +58,9 @@ interface {{.Name}}Sorting {
 
 export type {
   {{.Name}},
-  {{.Name}}Create,
-  {{.Name}}Update,
-  {{.Name}}Delete,
+  {{.Name}}CreatePayload,
+  {{.Name}}UpdatePayload,
+  {{.Name}}DeletePayload,
   {{.Name}}TableComponent,
   {{.Name}}TableProps,
   {{.Name}}FormComponent,

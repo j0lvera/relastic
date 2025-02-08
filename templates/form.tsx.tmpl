@@ -1,8 +1,8 @@
 import { EuiFieldText, EuiFieldNumber, EuiSelect } from "@elastic/eui";
-import { {{.Name}}Create, {{.Name}}Update, {{.Name}}FormProps } from "./{{.Name}}.types";
+import { {{.Name}}CreatePayload, {{.Name}}UpdatePayload, {{.Name}}FormProps } from "./{{.Name}}.types";
 import { Form, FormField } from "../Common/Form";
 
-const {{.Name}}Form = <T extends {{.Name}}Create | {{.Name}}Update>({
+const {{.Name}}Form = <T extends {{.Name}}CreatePayload | {{.Name}}UpdatePayload>({
   formId,
   defaultValues,
   onSubmit,

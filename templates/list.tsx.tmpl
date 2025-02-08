@@ -13,7 +13,7 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { {{.Name}}Table } from "./{{.Name}}.table";
 import { {{.Name}}Form } from "./{{.Name}}.form";
-import type { {{.Name}}, {{.Name}}Create, {{.Name}}Update } from "./{{.Name}}.types";
+import type { {{.Name}}, {{.Name}}CreatePayload, {{.Name}}UpdatePayload, {{.Name}}DeletePayload } from "./{{.Name}}.types";
 import { Modal, useModalUtils } from "../Common/Modal";
 import {
   {{.Name | lower}}sQueryOptions,
@@ -59,7 +59,7 @@ const {{.Name}}List = () => {
     modalFormId: addModalFormId,
   } = useModalUtils("add-{{.Name | lower}}");
 
-  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}Create) => {
+  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}CreatePayload) => {
     create{{.Name}}.mutate({{.Name | lower}}, {
       onSuccess: async () => {
         closeAddModal();
@@ -80,7 +80,7 @@ const {{.Name}}List = () => {
     modalFormId: updateModalFormId,
   } = useModalUtils("update-{{.Name | lower}}");
 
-  const handleUpdate{{.Name}} = ({{.Name | lower}}: {{.Name}}Update) => {
+  const handleUpdate{{.Name}} = ({{.Name | lower}}: {{.Name}}UpdatePayload) => {
     update{{.Name}}.mutate({{.Name | lower}}, {
       onSuccess: async () => {
         closeUpdateModal();

@@ -18,7 +18,7 @@ import {
 } from "./{{.Name}}.api";
 import { Modal, useModalUtils } from "../Common/Modal";
 import { {{.Name}}Form } from "./{{.Name}}.form";
-import type { {{.Name}}, {{.Name}}Create } from "./{{.Name}}.types";
+import type { {{.Name}}, {{.Name}}CreatePayload, {{.Name}}UpdatePayload, {{.Name}}DeletePayload } from "./{{.Name}}.types";
 import { {{.Name | upper}}_QUERY_KEY } from "./{{.Name}}.constants";
 
 const {{.Name}}Detail = () => {
@@ -42,7 +42,7 @@ const {{.Name}}Detail = () => {
     modalFormId: create{{.Name}}ModalFormId,
   } = useModalUtils("create-{{.Name | lower}}");
 
-  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}Create) => {
+  const handleCreate{{.Name}} = ({{.Name | lower}}: {{.Name}}CreatePayload) => {
     const new{{.Name}} = {
       ...{{.Name | lower}},
       parentId: params.{{.Name | lower}}Id,
@@ -70,7 +70,7 @@ const {{.Name}}Detail = () => {
     modalFormId: edit{{.Name}}ModalFormId,
   } = useModalUtils("edit-{{.Name | lower}}");
 
-  const handleEdit{{.Name}} = ({{.Name | lower}}: {{.Name}}) => {
+  const handleEdit{{.Name}} = ({{.Name | lower}}: {{.Name}}UpdatePayload) => {
     const {{.Name | lower}}ToUpdate = {
       ...{{.Name | lower}},
       parentId: params.{{.Name | lower}}Id,
