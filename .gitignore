@@ -188,3 +188,6 @@ fabric.properties
 
 # used for debugging
 user/
+
+# binary
+relastic
